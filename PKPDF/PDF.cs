@@ -38,6 +38,19 @@ namespace PortableKnowledge.PDF
             return Lines;
         }
 
+        public List<IPDFObject> GetAllObjects()
+        {
+            byte[] AllData = File.ReadAllBytes(Filepath);
+            int EndingIndex = 0;
+            List<IPDFObject> objects = new List<IPDFObject>();
+            IPDFObject nextObject;
+
+            while ((nextObject = PDFObjectParser.Parse(AllData, out EndingIndex, EndingIndex)) != null)
+                objects.Add(nextObject);
+
+            return objects;
+        }
+
         /// <summary>
         /// Return all form fillable fields in the currently open PDF document
         /// </summary>

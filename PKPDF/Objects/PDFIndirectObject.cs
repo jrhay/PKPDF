@@ -7,6 +7,8 @@ namespace PortableKnowledge.PDF
 {
     public class PDFIndirectObject : IPDFObject
     {
+        public PDFObjectType Type => PDFObjectType.IndirectDefinition;
+
         public int ObjectNumber { get; internal set; }
 
         public int GenerationNumber { get; internal set; }
@@ -24,49 +26,45 @@ namespace PortableKnowledge.PDF
 
         /// <summary>
         /// Attempt to parse the given data stream, returning an indicator of parse progress
-        /// Returned value will be:
-        /// (negative value) - Data can not be parsed as this type of object
-        /// 0                - Data stream parsing is successful, but more data is needed before a complete object can be created
-        /// (positive value) - Byte count into data (1-based) where parsing produced a valid object
         /// </summary>
+        /// <param name="StartingToken">The token immediately preceeding the starting index in Data stream</param>
         /// <param name="Data">Raw byte stream to parse</param>
-        /// <returns>Parsing success indicator. If 0, parsing was successful and object contains parsed data. If negative, parsing failed.</returns>
-        public static int TryParse(byte[] Data, int StartingIndex, out IPDFObject indirectObject)
+        /// <param name="StartingIndex">0-based starting index to start processing data stream (should point to byte immediately after StartingToken)</param>
+        /// <param name="EndingIndex">Index into data stream where parsing ended (either successfully or unsuccessfully)</param>
+        /// <returns>Object parsed from data stream, or NULL if unable to parse. If NULL and EndingIndex is equal to Data.Length, parsing may be successful with more data</returns>
+        public static IPDFObject TryParse(string StartingToken, byte[] Data, int StartingIndex, out int EndingIndex)
         {
-            string Declaration = PDF.GetTokenString(Data, StartingIndex, 3);
-            if (!String.IsNullOrEmpty(Declaration))
+            int Number;
+
+            EndingIndex = StartingIndex;
+            if (int.TryParse(StartingToken, out Number))
             {
-                Match objMatch = Regex.Match(Declaration, @"(\d+) (\d+) obj");
-                if (objMatch.Success)
+                string Declaration = PDFObjectParser.GetTokenString(Data, StartingIndex, out EndingIndex, 2);
+                if (!String.IsNullOrEmpty(Declaration))
                 {
-                    int Number = int.Parse(objMatch.Groups[1].Value);
-                    int Generation = int.Parse(objMatch.Groups[2].Value);
-
-                    int EndIndex = PDF.FirstOccurance(Data, Encoding.UTF8.GetBytes("endobj"), StartingIndex);
-                    if (EndIndex < 0)
+                    Match objMatch = Regex.Match(Declaration, @"([+-]?\d+) obj");
+                    if (objMatch.Success)
                     {
-                        // Need more data to process
-                        indirectObject = null;
-                        return 0;
-                    }
+                        int Generation = int.Parse(objMatch.Groups[1].Value);
 
-                    // Parse the indirect object content (should be a single object)
-                    List<IPDFObject> PDFObjects = PDFObjectParser.Parse(Data, out _, StartingIndex);
-                    if (PDFObjects.Count > 0)
-                    {
-                        indirectObject = new PDFIndirectObject(Number, Generation, PDFObjects[0]);
-                        return EndIndex + "endobj".Length + 1;
-                    }
+                        // Parse the indirect object content (should be a single object)
+                        IPDFObject PDFObject = PDFObjectParser.Parse(Data, out EndingIndex, EndingIndex);
+                        if (PDFObject != null)
+                        {
+                            int ObjectEndIndex = PDF.FirstOccurance(Data, Encoding.UTF8.GetBytes("endobj"), EndingIndex);
+                            if (ObjectEndIndex > 0)
+                            {
+                                // Format error - tokens after object definition but before "endobj"
+                            }
 
-                    // Unable to find an object
-                    indirectObject = null;
-                    return -1;
+                            EndingIndex = ObjectEndIndex + "endobj".Length;
+                            return new PDFIndirectObject(Number, Generation, PDFObject);
+                        }
+                    }
                 }
             }
 
-            // Unable to parse
-            indirectObject = null;
-            return -1;
+            return null;
         }
     }
 }

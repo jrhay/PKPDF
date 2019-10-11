@@ -31,22 +31,27 @@ namespace PKPDFTester
             {
                 //foreach (PDFFormField field in pdfFile.GetFields())
                 //    listFields.Items.Add(field.Name + " : " + field.Value);
-                foreach (byte[] Line in pdfFile.GetAllLines())
-                {
-                    string LineText = Encoding.UTF8.GetString(Line);
-                    textBox1.AppendText(LineText); 
-                    textBox1.AppendText(Environment.NewLine);
+                
+                //foreach (byte[] Line in pdfFile.GetAllLines())
+                //{
+                //    string LineText = Encoding.UTF8.GetString(Line);
+                //    textBox1.AppendText(LineText); 
+                //    textBox1.AppendText(Environment.NewLine);
 
-                    byte[] Comment = null;
-                    int Index = -1;
-                    byte[] Trimmed = null;
-                    PDFComment.ExtractPDFComment(Line, out Comment, out Trimmed, out Index);
-                    if ((Comment != null) && (Comment.Length > 0))
-                    {
-                        textBox2.AppendText(Encoding.UTF8.GetString(Comment));
-                        textBox2.AppendText(Environment.NewLine);
-                    }
-                    textBox3.AppendText(Encoding.UTF8.GetString(PDF.TrimAndCollapseWhitespace(Trimmed)));
+                //    byte[] Comment = null;
+                //    int Index = -1;
+                //    byte[] Trimmed = null;
+                //    PDFComment.ExtractPDFComment(Line, out Comment, out Trimmed, out Index);
+                //    if ((Comment != null) && (Comment.Length > 0))
+                //    {
+                //        textBox2.AppendText(Encoding.UTF8.GetString(Comment));
+                //        textBox2.AppendText(Environment.NewLine);
+                //    }
+                //}
+
+                foreach (IPDFObject pdfObject in pdfFile.GetAllObjects())
+                {
+                    textBox3.AppendText(pdfObject.Type.ToString());
                     textBox3.AppendText(Environment.NewLine);
                 }
             }

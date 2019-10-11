@@ -125,7 +125,7 @@
             this.textBox3.Multiline = true;
             this.textBox3.Name = "textBox3";
             this.textBox3.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox3.Size = new System.Drawing.Size(350, 357);
+            this.textBox3.Size = new System.Drawing.Size(514, 357);
             this.textBox3.TabIndex = 9;
             // 
             // label4
@@ -137,7 +137,7 @@
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(720, 20);
             this.label4.TabIndex = 8;
-            this.label4.Text = "Trimmed Lines in PDF";
+            this.label4.Text = "Objects in PDF";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // Form1

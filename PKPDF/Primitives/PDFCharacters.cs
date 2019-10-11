@@ -275,37 +275,6 @@ namespace PortableKnowledge.PDF
             return NewLine.ToArray();
         }
 
-        /// <summary>
-        /// Read a number of tokens (seperated by whitespace) from a PDF data stream as UTF8 characters
-        /// </summary>
-        /// <param name="Data">Data stream to read</param>
-        /// <param name="StartingIndex">Starting offset </param>
-        /// <param name="WordCount">Number of tokens sepreated by whitespace to read. If multiple words are read, all whitespace will be replaced by a single space character (0x20)</param>
-        /// <returns>Read tokens, or NULL if unable to read the specified number of words before running out of data</returns>
-        internal static string GetTokenString(byte[] Data, int StartingIndex, int WordCount = 1)
-        {
-            int EndingIndex = StartingIndex;
-            while (WordCount-- >= 0)
-            {
-                // Skip to next whitespace character
-                EndingIndex = FirstOccurance(Data, PDF.Whitespace, EndingIndex);
-                if (EndingIndex < 0)
-                    return null;
-
-                // Skip contiguous whitespace
-                while (Data[EndingIndex].IsPDFWhitespace())
-                {
-                    EndingIndex++;
-                    if (EndingIndex >= Data.Length)
-                        return null;
-                }
-            }
-
-            int ByteLength = EndingIndex - StartingIndex + 1;
-            byte[] StringBytes = new byte[ByteLength];
-            Array.Copy(Data, StartingIndex, StringBytes, 0, ByteLength);
-            return Encoding.UTF8.GetString(TrimAndCollapseWhitespace(StringBytes));
-        }
 
         #endregion
     }

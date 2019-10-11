@@ -2,34 +2,53 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace PortableKnowledge.PDF.Objects
+namespace PortableKnowledge.PDF
 {
     class PDFDictionary : Dictionary<IPDFObject, IPDFObject>, IPDFObject
     {
-        public PDFDictionary() : base()
+        public PDFObjectType Type => PDFObjectType.Dictionary;
+
+        public PDFDictionary(Dictionary<IPDFObject, IPDFObject> keyValuePairs) : base(keyValuePairs)
         {
         }
 
         /// <summary>
         /// Attempt to parse the given data stream, returning an indicator of parse progress
-        /// Returned value will be:
-        /// (negative value) - Data can not be parsed as this type of object
-        /// 0                - Data stream parsing is successful, but more data is needed before a complete object can be created
-        /// (positive value) - Byte count into data (1-based) where parsing produced a valid object
         /// </summary>
+        /// <param name="StartingToken">The token immediately preceeding the starting index in Data stream</param>
         /// <param name="Data">Raw byte stream to parse</param>
-        /// <returns>Parsing success indicator. If 0, parsing was successful and object contains parsed data. If negative, parsing failed.</returns>
-        public static int TryParse(byte[] Data, int StartingIndex, out IPDFObject indirectObject)
+        /// <param name="StartingIndex">0-based starting index to start processing data stream (should point to byte immediately after StartingToken)</param>
+        /// <param name="EndingIndex">Index into data stream where parsing ended (either successfully or unsuccessfully)</param>
+        /// <returns>Object parsed from data stream, or NULL if unable to parse. If NULL and EndingIndex is equal to Data.Length, parsing may be successful with more data</returns>
+        public static IPDFObject TryParse(string StartingToken, byte[] Data, int StartingIndex, out int EndingIndex)
         {
-            string Declaration = PDF.GetTokenString(Data, StartingIndex);
-            if (!String.IsNullOrEmpty(Declaration) && (Declaration == "<<"))
-            {
+            Dictionary<IPDFObject, IPDFObject> KeyValuePairs = new Dictionary<IPDFObject, IPDFObject>();
 
+            EndingIndex = StartingIndex;
+            if (StartingToken.Equals("<<"))
+            {
+                while (EndingIndex < Data.Length)
+                {
+                    if (">>".Equals(PDFObjectParser.GetTokenString(Data, EndingIndex, out _)))
+                        return new PDFDictionary(KeyValuePairs);
+
+                    IPDFObject Key = PDFObjectParser.Parse(Data, out EndingIndex, EndingIndex);
+                    if (Key == null)
+                        return null; // No key found
+
+                    if (Key.Type != PDFObjectType.Name)
+                        return null; // Invalid key type found
+
+                    IPDFObject Value = PDFObjectParser.Parse(Data, out EndingIndex, EndingIndex);
+                    if (Value == null)
+                        return null; // No value found
+
+                    KeyValuePairs.Add(Key, Value);
+                }
             }
 
-            // Unable to parse
-            indirectObject = null;
-            return -1;
+            // Didn't find a dictionary delimiter
+            return null;
         }
     }
 }
