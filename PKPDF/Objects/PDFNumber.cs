@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -33,14 +34,15 @@ namespace PortableKnowledge.PDF
         /// <returns>Object parsed from data stream, or NULL if unable to parse. If NULL and EndingIndex is equal to Data.Length, parsing may be successful with more data</returns>
         public static IPDFObject TryParse(string StartingToken, byte[] Data, int StartingIndex, out int EndingIndex)
         {
-            EndingIndex = StartingIndex + StartingToken.Length;
+            string numToken = string.Concat(StartingToken.TakeWhile(c => (c >= '0' && c <= '9') || c == '.' || c == '+' || c == '-'));
+            EndingIndex = StartingIndex + numToken.Length;
 
             int IntNumber;
-            if (int.TryParse(StartingToken, out IntNumber))
+            if (int.TryParse(numToken, out IntNumber))
                 return new PDFNumber(IntNumber);
 
             float RealNumber;
-            if (float.TryParse(StartingToken, out RealNumber))
+            if (float.TryParse(numToken, out RealNumber))
                 return new PDFNumber(RealNumber);
 
             EndingIndex = StartingIndex;

@@ -49,7 +49,7 @@ namespace PKPDFTester
                 //    }
                 //}
 
-                foreach (IPDFObject pdfObject in pdfFile.GetObjects(5))
+                foreach (IPDFObject pdfObject in pdfFile.GetAllObjects())
                 {
                     textBox3.AppendText(pdfObject.Description);
                     textBox3.AppendText(Environment.NewLine);
