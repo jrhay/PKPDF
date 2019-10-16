@@ -95,12 +95,12 @@
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox1.Size = new System.Drawing.Size(350, 357);
+            this.textBox1.Size = new System.Drawing.Size(173, 357);
             this.textBox1.TabIndex = 5;
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(482, 80);
+            this.textBox2.Location = new System.Drawing.Point(312, 79);
             this.textBox2.Multiline = true;
             this.textBox2.Name = "textBox2";
             this.textBox2.ScrollBars = System.Windows.Forms.ScrollBars.Both;
@@ -112,7 +112,7 @@
             this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label3.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.label3.Location = new System.Drawing.Point(482, 56);
+            this.label3.Location = new System.Drawing.Point(309, 56);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(720, 20);
             this.label3.TabIndex = 6;
@@ -121,11 +121,11 @@
             // 
             // textBox3
             // 
-            this.textBox3.Location = new System.Drawing.Point(838, 81);
+            this.textBox3.Location = new System.Drawing.Point(668, 81);
             this.textBox3.Multiline = true;
             this.textBox3.Name = "textBox3";
             this.textBox3.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox3.Size = new System.Drawing.Size(514, 357);
+            this.textBox3.Size = new System.Drawing.Size(684, 357);
             this.textBox3.TabIndex = 9;
             // 
             // label4
@@ -133,7 +133,7 @@
             this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label4.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.label4.Location = new System.Drawing.Point(838, 57);
+            this.label4.Location = new System.Drawing.Point(665, 56);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(720, 20);
             this.label4.TabIndex = 8;

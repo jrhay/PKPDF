@@ -1,21 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace PortableKnowledge.PDF
 {
-    class PDFName : IPDFObject
+    public class PDFNumber : IPDFObject
     {
-        public PDFObjectType Type => PDFObjectType.Name;
+        public PDFObjectType Type => PDFObjectType.Number;
 
-        public string Text { get; }
+        Decimal Value;
 
-        public PDFName(string NameText) : base()
+        public PDFNumber(int Number)
         {
-            this.Text = NameText;
+            this.Value = Number;
         }
 
-        public string Description => "\"" + (String.IsNullOrEmpty(Text) ? "" : Text) + "\"";
+        public PDFNumber(float Number)
+        {
+            this.Value = (Decimal)Number;
+        }
+
+        public string Description => Value.ToString();
 
         /// <summary>
         /// Attempt to parse the given data stream, returning an indicator of parse progress
@@ -27,19 +33,17 @@ namespace PortableKnowledge.PDF
         /// <returns>Object parsed from data stream, or NULL if unable to parse. If NULL and EndingIndex is equal to Data.Length, parsing may be successful with more data</returns>
         public static IPDFObject TryParse(string StartingToken, byte[] Data, int StartingIndex, out int EndingIndex)
         {
+            EndingIndex = StartingIndex + StartingToken.Length;
+
+            int IntNumber;
+            if (int.TryParse(StartingToken, out IntNumber))
+                return new PDFNumber(IntNumber);
+
+            float RealNumber;
+            if (float.TryParse(StartingToken, out RealNumber))
+                return new PDFNumber(RealNumber);
+
             EndingIndex = StartingIndex;
-
-            if ((StartingToken.Length > 1) && (StartingToken[0] == '/'))
-            {
-                int DelimIndex = PDF.DelimiterIndex(StartingToken, 1);
-                if (DelimIndex >= 0)
-                    EndingIndex = StartingIndex + DelimIndex;
-                else
-                    EndingIndex += StartingToken.Length;
-    
-                return new PDFName(StartingToken.Substring(1, (EndingIndex - StartingIndex) - 1));
-            }
-
             return null;
         }
     }

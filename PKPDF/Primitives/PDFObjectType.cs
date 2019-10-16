@@ -7,18 +7,27 @@ namespace PortableKnowledge.PDF
     /// <summary>
     /// Type of PDF object
     /// </summary>
+    /// <remarks>
+    /// To ensure correct parsing, the objects should be attempted to be parsed in increasing value order
+    /// </remarks>
     public enum PDFObjectType
     {
-        NullObject,
-        
-        Name,
-        
-        StringLiteral,
+        Comment,
 
         Dictionary,
-        
-        IndirectDefinition,
 
-        IndirectReference
+        Array,
+
+        StringLiteral,
+
+        ObjectDefinition,
+
+        IndirectReference,
+
+        Number,
+
+        Name,
+
+        NullObject
     }
 }

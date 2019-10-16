@@ -34,6 +34,16 @@ namespace PortableKnowledge.PDF
         /// </summary>
         public static byte CommentDelimiter = (byte)'%';
 
+        /// <summary>
+        /// Delimiter to mark the start of a string in a PDF document
+        /// </summary>
+        public static byte StringStartDelimiter = (byte)'(';
+
+        /// <summary>
+        /// Delimiter to mark the end of a string in a PDF document
+        /// </summary>
+        public static byte StringEndDelimiter = (byte)')';
+
         #endregion
 
         #region Character Set Tests
@@ -138,9 +148,9 @@ namespace PortableKnowledge.PDF
         public static int FirstOccurance(byte[] DataLine, byte Character, int StartingIndex = 0, int EndingIndex = -1)
         {
             if (EndingIndex < 0)
-                EndingIndex = DataLine.Length - 1;
+                EndingIndex = DataLine.Length;
 
-            return Array.IndexOf(DataLine, Character, StartingIndex, EndingIndex - StartingIndex + 1);
+            return Array.IndexOf(DataLine, Character, StartingIndex, EndingIndex - StartingIndex);
         }
 
         /// <summary>
@@ -154,7 +164,7 @@ namespace PortableKnowledge.PDF
         public static int FirstOccurance(byte[] DataLine, byte[] Sequence, int StartingIndex = 0, int EndingIndex = -1)
         {
             if (EndingIndex < 0)
-                EndingIndex = DataLine.Length - Sequence.Length;
+                EndingIndex = DataLine.Length;
 
             int Index = -1;
             int SeqIndex = 0;
@@ -237,6 +247,29 @@ namespace PortableKnowledge.PDF
         }
 
         /// <summary>
+        /// Find index of the first delimiter in a given string
+        /// </summary>
+        /// <param name="DataLine">String to search for delimiters</param>
+        /// <param name="StartingIndex">Index at which to start searching the string</param>
+        /// <returns>Index of first delimiter character in the string, or -1 if string contains no delimiters</returns>
+        public static int DelimiterIndex(string DataLine, int StartingIndex = 0)
+        {
+            int Index = int.MaxValue;
+            string SearchString = (StartingIndex <= 0) ? DataLine : DataLine.Substring(StartingIndex);
+            foreach (char Delim in PDF.Delimiter)
+            {
+                int DelimIndex = SearchString.IndexOf(Delim);
+                if ((DelimIndex >= 0) && (DelimIndex < Index))
+                    Index = DelimIndex;
+            }
+
+            if (Index == int.MaxValue)
+                return -1;
+
+            return Index + StartingIndex;
+        }
+
+        /// <summary>
         /// Find the start of an End of Line sequence in a PDF data line
         /// </summary>
         /// <param name="DataLine">Data line to scan</param>
@@ -245,6 +278,30 @@ namespace PortableKnowledge.PDF
         public static int EOLStart(byte[] DataLine, int StartingIndex = 0)
         {
             return EOLStart(DataLine, out _, StartingIndex);
+        }
+
+        /// <summary>
+        /// Extract bytes from a PDF data stream up to an End Of Line byte or sequence of bytes
+        /// </summary>
+        /// <param name="Data">PDF Data stream to extract bytes from</param>
+        /// <param name="StartIndex">Starting index in stream to start extracting bytes</param>
+        /// <param name="EndIndex">Index in stream at end of line's EOL characters</param>
+        /// <returns>Extracted data line</returns>
+        public static byte[] ExtractPDFLine(byte[] Data, int StartIndex, out int EndIndex)
+        {
+            byte[] Line = null;
+            EndIndex = StartIndex;
+            if (StartIndex >= 0)
+            {
+                int EOLLength = 0;
+                int EOLStart = PDF.EOLStart(Data, out EOLLength, StartIndex);
+                EndIndex = EOLStart + EOLLength;
+
+                int LineLength = EOLStart - StartIndex - 1;
+                Line = new byte[LineLength];
+                Array.Copy(Data, StartIndex, Line, 0, LineLength);
+            }
+            return Line;
         }
 
         /// <summary>
@@ -275,9 +332,50 @@ namespace PortableKnowledge.PDF
             return NewLine.ToArray();
         }
 
+        /// <summary>
+        /// Translate three ASCII numeric digits into the character they represent in octal
+        /// </summary>
+        /// <param name="Data">Byte array containing three ASCII digits</param>
+        /// <param name="StartingIndex">Starting index of the ASCII digits</param>
+        /// <returns>The byte value represented by the digits interpreted as an octal character code</returns>
+        public static byte TranslateOctal(byte[] Data, int StartingIndex)
+        {
+            char[] OctalVal = new char[3];
+            OctalVal[0] = (char)Data[StartingIndex];
+            OctalVal[1] = (char)Data[StartingIndex + 1];
+            OctalVal[2] = (char)Data[StartingIndex + 2];
+            return Convert.ToByte(new String(OctalVal, StartingIndex, 3), 8);
+        }
+
+        /// <summary>
+        /// Attempt to interpred a given byte as an escaped character, returning the character represented
+        /// </summary>
+        /// <param name="EscapedChar">Escaped Character</param>
+        /// <returns>Actual character, or 0 if this is the start of an octal escape sequence</returns>
+        public static byte UnescapeCharacter(byte EscapedChar)
+        {
+            switch (EscapedChar)
+            {
+                case (byte)'n':
+                    return 0x0A;
+                case (byte)'r':
+                    return 0x0D;
+                case (byte)'t':
+                    return 0x09;
+                case (byte)'b':
+                    return 0x08;
+                case (byte)'f':
+                    return 0x0FF;
+            }
+
+            if ((EscapedChar >= '0') && (EscapedChar <= '9'))
+                return 0x0;
+
+            return EscapedChar;
+        }
 
         #endregion
     }
 
 
-    }
+}

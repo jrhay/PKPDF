@@ -14,15 +14,17 @@ namespace PortableKnowledge.PDF
         /// </summary>
         /// <param name="Data">Data stream to read</param>
         /// <param name="StartingIndex">Starting offset</param>
+        /// <param name="TokenStartIndex">Offset in the data array where the token appears</param>
         /// <param name="EndingIndex">Offset in the data array where reading stopped</param>
         /// <param name="WordCount">Number of tokens sepreated by whitespace to read. If multiple words are read, all whitespace will be replaced by a single space character (0x20)</param>
         /// <returns>Read tokens as a UTF8 string, or NULL if unable to read the specified number of words before running out of data</returns>
-        internal static string GetTokenString(byte[] Data, int StartingIndex, out int EndingIndex, int WordCount = 1)
+        internal static string GetTokenString(byte[] Data, int StartingIndex, out int TokenStartIndex, out int EndingIndex, int WordCount = 1)
         {
             List<Byte> TokenString = new List<Byte>(20);
             bool InComment = false;
             bool InWhitespace = false;
 
+            TokenStartIndex = 0;
             EndingIndex = StartingIndex;
             while ((WordCount > 0) && (EndingIndex < Data.Length))
             {
@@ -43,7 +45,7 @@ namespace PortableKnowledge.PDF
                         {
                             InWhitespace = true;
                             if (TokenString.Count > 0)
-                            {   
+                            {
                                 // Don't add leading/trailing whitespace
                                 WordCount--;
                                 if (WordCount > 0)
@@ -51,7 +53,11 @@ namespace PortableKnowledge.PDF
                             }
                         }
                         else
+                        {
+                            if (TokenString.Count == 0)
+                                TokenStartIndex = EndingIndex;
                             TokenString.Add(DataByte);
+                        }
                     }
                 }
 
@@ -73,24 +79,38 @@ namespace PortableKnowledge.PDF
         /// <returns>PDF object successfully parsed from the data, or NULL if no complete object was parsable</returns>
         public static IPDFObject Parse(byte[] Data, out int EndingIndex, int StartingIndex = 0)
         {
+            int StartTokenIndex;
             int EndTokenIndex;
 
             IPDFObject ParsedObject = null;
-            string Token = GetTokenString(Data, StartingIndex, out EndTokenIndex);
+            string Token = GetTokenString(Data, StartingIndex, out StartTokenIndex, out EndTokenIndex);
 
             if (!string.IsNullOrEmpty(Token))
             {
-                if ((ParsedObject = PDFDictionary.TryParse(Token, Data, EndTokenIndex, out EndingIndex)) != null)
+                if ((ParsedObject = PDFDictionary.TryParse(Token, Data, StartTokenIndex, out EndingIndex)) != null)
                     return ParsedObject;
 
-                if ((ParsedObject = PDFIndirectObject.TryParse(Token, Data, EndTokenIndex, out EndingIndex)) != null)
+                if ((ParsedObject = PDFArray.TryParse(Token, Data, StartTokenIndex, out EndingIndex)) != null)
                     return ParsedObject;
 
-                if ((ParsedObject = PDFName.TryParse(Token, Data, EndTokenIndex, out EndingIndex)) != null)
+                if ((ParsedObject = PDFString.TryParse(Token, Data, StartTokenIndex, out EndingIndex)) != null)
                     return ParsedObject;
 
-                if ((ParsedObject = PDFString.TryParse(Token, Data, EndTokenIndex, out EndingIndex)) != null)
+                if ((ParsedObject = PDFObjectDefinition.TryParse(Token, Data, StartTokenIndex, out EndingIndex)) != null)
                     return ParsedObject;
+
+                if ((ParsedObject = PDFIndirectObject.TryParse(Token, Data, StartTokenIndex, out EndingIndex)) != null)
+                    return ParsedObject;
+
+                if ((ParsedObject = PDFNumber.TryParse(Token, Data, StartTokenIndex, out EndingIndex)) != null)
+                    return ParsedObject;
+
+                if ((ParsedObject = PDFName.TryParse(Token, Data, StartTokenIndex, out EndingIndex)) != null)
+                    return ParsedObject;
+
+                if ((ParsedObject = PDFComment.TryParse(Token, Data, StartTokenIndex, out EndingIndex)) != null)
+                    return ParsedObject;
+
             }
 
             // Could not parse next object

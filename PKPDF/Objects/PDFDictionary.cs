@@ -12,12 +12,27 @@ namespace PortableKnowledge.PDF
         {
         }
 
+        public string Description
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder(this.Keys.Count + 2);
+                sb.AppendLine("Dictionary:");
+                foreach (IPDFObject key in Keys)
+                {
+                    sb.AppendLine("\t" + key.Description + " => " + this[key].Description);
+                }
+                return sb.ToString();
+            }
+        }
+
+
         /// <summary>
         /// Attempt to parse the given data stream, returning an indicator of parse progress
         /// </summary>
         /// <param name="StartingToken">The token immediately preceeding the starting index in Data stream</param>
         /// <param name="Data">Raw byte stream to parse</param>
-        /// <param name="StartingIndex">0-based starting index to start processing data stream (should point to byte immediately after StartingToken)</param>
+        /// <param name="StartingIndex">0-based starting index into Data where StartingToken appears</param>
         /// <param name="EndingIndex">Index into data stream where parsing ended (either successfully or unsuccessfully)</param>
         /// <returns>Object parsed from data stream, or NULL if unable to parse. If NULL and EndingIndex is equal to Data.Length, parsing may be successful with more data</returns>
         public static IPDFObject TryParse(string StartingToken, byte[] Data, int StartingIndex, out int EndingIndex)
@@ -27,9 +42,10 @@ namespace PortableKnowledge.PDF
             EndingIndex = StartingIndex;
             if (StartingToken.Equals("<<"))
             {
+                EndingIndex += StartingToken.Length;
                 while (EndingIndex < Data.Length)
                 {
-                    if (">>".Equals(PDFObjectParser.GetTokenString(Data, EndingIndex, out _)))
+                    if (">>".Equals(PDFObjectParser.GetTokenString(Data, EndingIndex, out _, out _)))
                         return new PDFDictionary(KeyValuePairs);
 
                     IPDFObject Key = PDFObjectParser.Parse(Data, out EndingIndex, EndingIndex);

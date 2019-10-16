@@ -38,17 +38,22 @@ namespace PortableKnowledge.PDF
             return Lines;
         }
 
-        public List<IPDFObject> GetAllObjects()
+        public List<IPDFObject> GetObjects(int MaxObjects)
         {
             byte[] AllData = File.ReadAllBytes(Filepath);
             int EndingIndex = 0;
             List<IPDFObject> objects = new List<IPDFObject>();
             IPDFObject nextObject;
 
-            while ((nextObject = PDFObjectParser.Parse(AllData, out EndingIndex, EndingIndex)) != null)
+            while ((objects.Count < MaxObjects) && ((nextObject = PDFObjectParser.Parse(AllData, out EndingIndex, EndingIndex)) != null))
                 objects.Add(nextObject);
 
             return objects;
+        }
+
+        public List<IPDFObject> GetAllObjects()
+        {
+            return GetObjects(int.MaxValue);
         }
 
         /// <summary>

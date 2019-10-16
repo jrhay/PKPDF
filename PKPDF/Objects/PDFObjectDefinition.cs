@@ -5,9 +5,9 @@ using System.Text.RegularExpressions;
 
 namespace PortableKnowledge.PDF
 {
-    public class PDFIndirectObject : IPDFObject
+    public class PDFObjectDefinition : IPDFObject
     {
-        public PDFObjectType Type => PDFObjectType.IndirectReference;
+        public PDFObjectType Type => PDFObjectType.ObjectDefinition;
 
         public int ObjectNumber { get; internal set; }
 
@@ -15,13 +15,16 @@ namespace PortableKnowledge.PDF
 
         public string Identifier { get { return ObjectNumber.ToString() + " " + GenerationNumber.ToString(); } }
 
-        public PDFIndirectObject(int Number, int Generation)
+        public IPDFObject Object { get; internal set; }
+
+        public PDFObjectDefinition(int Number, int Generation, IPDFObject PDFObject)
         {
             this.ObjectNumber = Number;
             this.GenerationNumber = Generation;
+            this.Object = PDFObject;
         }
 
-        public string Description => "Object [" + ObjectNumber + ":" + GenerationNumber + "]";
+        public string Description => "Object [" + ObjectNumber + ":" + GenerationNumber + "] => " + (Object != null ? Object.Description : "null");
 
         /// <summary>
         /// Attempt to parse the given data stream, returning an indicator of parse progress
@@ -33,22 +36,34 @@ namespace PortableKnowledge.PDF
         /// <returns>Object parsed from data stream, or NULL if unable to parse. If NULL and EndingIndex is equal to Data.Length, parsing may be successful with more data</returns>
         public static IPDFObject TryParse(string StartingToken, byte[] Data, int StartingIndex, out int EndingIndex)
         {
-            int StartIndex;
             int Number;
 
             EndingIndex = StartingIndex;
             if (int.TryParse(StartingToken, out Number))
             {
-                string Declaration = PDFObjectParser.GetTokenString(Data, StartingIndex + StartingToken.Length, out StartIndex, out EndingIndex, 2);
+                string Declaration = PDFObjectParser.GetTokenString(Data, StartingIndex + StartingToken.Length, out _, out EndingIndex, 2);
                 if (!String.IsNullOrEmpty(Declaration))
                 {
-                    Match objMatch = Regex.Match(Declaration, @"([+-]?\d+) R");
+                    Match objMatch = Regex.Match(Declaration, @"([+-]?\d+) obj");
                     if (objMatch.Success)
                     {
-                        int Generation = int.Parse(objMatch.Groups[1].Value);
                         if (Declaration.Length != objMatch.Length)
                             EndingIndex = EndingIndex - (Declaration.Length - objMatch.Length) - 1;
-                        return new PDFIndirectObject(Number, Generation);
+                        int Generation = int.Parse(objMatch.Groups[1].Value);
+
+                        // Parse the indirect object content (should be a single object)
+                        IPDFObject PDFObject = PDFObjectParser.Parse(Data, out EndingIndex, EndingIndex);
+                        if (PDFObject != null)
+                        {
+                            int ObjectEndIndex = PDF.FirstOccurance(Data, Encoding.UTF8.GetBytes("endobj"), EndingIndex);
+                            if (ObjectEndIndex > 0)
+                            {
+                                // Format error - tokens after object definition but before "endobj"
+                            }
+
+                            EndingIndex = ObjectEndIndex + "endobj".Length;
+                            return new PDFObjectDefinition(Number, Generation, PDFObject);
+                        }
                     }
                 }
             }
