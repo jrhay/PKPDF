@@ -26,8 +26,10 @@ namespace PortableKnowledge.PDF
 
         Number,
 
+        NullObject,
+
         Name,
 
-        NullObject
+        Stream
     }
 }

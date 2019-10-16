@@ -19,7 +19,7 @@ namespace PortableKnowledge.PDF
         /// </summary>
         string Description { get; }
 
-        // In addition to these methods and properties, all IPDFObject implementations should implement the following static method:
+        // In addition to these methods and properties, most IPDFObject implementations should implement the following static method:
         //
         // <summary>
         // Attempt to parse the given data stream, returning an indicator of parse progress

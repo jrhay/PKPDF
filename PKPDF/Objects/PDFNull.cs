@@ -1,27 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace PortableKnowledge.PDF
 {
-    public class PDFNumber : IPDFObject
+    class PDFNull : IPDFObject
     {
-        public PDFObjectType Type => PDFObjectType.Number;
+        public PDFObjectType Type => PDFObjectType.NullObject;
 
-        Decimal Value;
-
-        public PDFNumber(int Number)
+        public PDFNull() : base()
         {
-            this.Value = Number;
         }
 
-        public PDFNumber(float Number)
-        {
-            this.Value = (Decimal)Number;
-        }
-
-        public string Description => Value.ToString();
+        public string Description => "null";
 
         /// <summary>
         /// Attempt to parse the given data stream, returning an indicator of parse progress
@@ -33,23 +24,15 @@ namespace PortableKnowledge.PDF
         /// <returns>Object parsed from data stream, or NULL if unable to parse. If NULL and EndingIndex is equal to Data.Length, parsing may be successful with more data</returns>
         public static IPDFObject TryParse(string StartingToken, byte[] Data, int StartingIndex, out int EndingIndex)
         {
-            EndingIndex = StartingIndex + StartingToken.Length;
-
-            int IntNumber;
-            if (int.TryParse(StartingToken, out IntNumber))
-                return new PDFNumber(IntNumber);
-
-            float RealNumber;
-            if (float.TryParse(StartingToken, out RealNumber))
-                return new PDFNumber(RealNumber);
-
             EndingIndex = StartingIndex;
-            return null;
-        }
 
-        public override string ToString()
-        {
-            return base.ToString() + "(" + Value.ToString() + ")";
+            if ("null".Equals(StartingToken))
+            {
+                EndingIndex = StartingIndex + StartingToken.Length;
+                return new PDFNull();
+            }
+
+            return null;
         }
     }
 }

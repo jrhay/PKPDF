@@ -4,11 +4,11 @@ using System.Text;
 
 namespace PortableKnowledge.PDF
 {
-    class PDFDictionary : Dictionary<IPDFObject, IPDFObject>, IPDFObject
+    class PDFDictionary : Dictionary<string, IPDFObject>, IPDFObject
     {
         public PDFObjectType Type => PDFObjectType.Dictionary;
 
-        public PDFDictionary(Dictionary<IPDFObject, IPDFObject> keyValuePairs) : base(keyValuePairs)
+        public PDFDictionary(Dictionary<string, IPDFObject> keyValuePairs) : base(keyValuePairs)
         {
         }
 
@@ -18,9 +18,9 @@ namespace PortableKnowledge.PDF
             {
                 StringBuilder sb = new StringBuilder(this.Keys.Count + 2);
                 sb.AppendLine("Dictionary:");
-                foreach (IPDFObject key in Keys)
+                foreach (string key in Keys)
                 {
-                    sb.AppendLine("\t" + key.Description + " => " + this[key].Description);
+                    sb.AppendLine("\t" + key + " => " + this[key].Description);
                 }
                 return sb.ToString();
             }
@@ -37,7 +37,7 @@ namespace PortableKnowledge.PDF
         /// <returns>Object parsed from data stream, or NULL if unable to parse. If NULL and EndingIndex is equal to Data.Length, parsing may be successful with more data</returns>
         public static IPDFObject TryParse(string StartingToken, byte[] Data, int StartingIndex, out int EndingIndex)
         {
-            Dictionary<IPDFObject, IPDFObject> KeyValuePairs = new Dictionary<IPDFObject, IPDFObject>();
+            Dictionary<string, IPDFObject> KeyValuePairs = new Dictionary<string, IPDFObject>();
 
             EndingIndex = StartingIndex;
             if (StartingToken.Equals("<<"))
@@ -45,8 +45,15 @@ namespace PortableKnowledge.PDF
                 EndingIndex += StartingToken.Length;
                 while (EndingIndex < Data.Length)
                 {
-                    if (">>".Equals(PDFObjectParser.GetTokenString(Data, EndingIndex, out _, out _)))
-                        return new PDFDictionary(KeyValuePairs);
+                    int TokEnd;
+                    if (">>".Equals(PDFObjectParser.GetTokenString(Data, EndingIndex, out _, out TokEnd)))
+                    {
+                        EndingIndex = TokEnd;
+                        if ("stream".Equals(PDFObjectParser.GetTokenString(Data, EndingIndex, out _, out TokEnd)))
+                            return PDFStream.MakeStream(new PDFDictionary(KeyValuePairs), Data, EndingIndex, out EndingIndex);
+                        else
+                            return new PDFDictionary(KeyValuePairs);
+                    }
 
                     IPDFObject Key = PDFObjectParser.Parse(Data, out EndingIndex, EndingIndex);
                     if (Key == null)
@@ -59,7 +66,7 @@ namespace PortableKnowledge.PDF
                     if (Value == null)
                         return null; // No value found
 
-                    KeyValuePairs.Add(Key, Value);
+                    KeyValuePairs.Add(Key.Description, Value);
                 }
             }
 

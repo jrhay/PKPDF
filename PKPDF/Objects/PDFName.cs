@@ -15,7 +15,7 @@ namespace PortableKnowledge.PDF
             this.Text = NameText;
         }
 
-        public string Description => "\"" + (String.IsNullOrEmpty(Text) ? "" : Text) + "\"";
+        public string Description => (String.IsNullOrEmpty(Text) ? "" : Text);
 
         /// <summary>
         /// Attempt to parse the given data stream, returning an indicator of parse progress
@@ -41,6 +41,11 @@ namespace PortableKnowledge.PDF
             }
 
             return null;
+        }
+
+        public override string ToString()
+        {
+            return base.ToString() + "(" + Text + ")";
         }
     }
 }

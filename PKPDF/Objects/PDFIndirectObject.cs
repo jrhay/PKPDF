@@ -55,5 +55,10 @@ namespace PortableKnowledge.PDF
 
             return null;
         }
+
+        public override string ToString()
+        {
+            return base.ToString() + "(" + Identifier + ")";
+        }
     }
 }
