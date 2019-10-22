@@ -96,6 +96,9 @@ namespace PortableKnowledge.PDF
                 if ((ParsedObject = PDFString.TryParse(Token, Data, StartTokenIndex, out EndingIndex)) != null)
                     return ParsedObject;
 
+                if ((ParsedObject = PDFHexString.TryParse(Token, Data, StartTokenIndex, out EndingIndex)) != null)
+                    return ParsedObject;
+
                 if ((ParsedObject = PDFObjectDefinition.TryParse(Token, Data, StartTokenIndex, out EndingIndex)) != null)
                     return ParsedObject;
 

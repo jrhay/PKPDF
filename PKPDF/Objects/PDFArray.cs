@@ -54,12 +54,15 @@ namespace PortableKnowledge.PDF
                     IPDFObject nextObject = PDFObjectParser.Parse(Data, out EndingIndex, EndingIndex);
                     if (nextObject != null)
                         ObjectArray.Add(nextObject);
-                    char nextChar = (char)Data[EndingIndex];
+
+                    byte nextChar = PDF.Whitespace[0];
+                    while (PDF.IsWhitespace(nextChar))
+                        nextChar = Data[EndingIndex++];
+
                     if (nextChar == ']')
-                    {
-                        EndingIndex++;
                         return ObjectArray;
-                    }
+                    else
+                        EndingIndex--;
                 }
             }
 

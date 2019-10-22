@@ -23,32 +23,10 @@ namespace PKPDFTester
 
         private void ShowFields(PDF pdfFile)
         {
-            textBox1.Clear();
-            textBox2.Clear();
             textBox3.Clear();
 
             if (pdfFile != null)
             {
-                //foreach (PDFFormField field in pdfFile.GetFields())
-                //    listFields.Items.Add(field.Name + " : " + field.Value);
-                
-                //foreach (byte[] Line in pdfFile.GetAllLines())
-                //{
-                //    string LineText = Encoding.UTF8.GetString(Line);
-                //    textBox1.AppendText(LineText); 
-                //    textBox1.AppendText(Environment.NewLine);
-
-                //    byte[] Comment = null;
-                //    int Index = -1;
-                //    byte[] Trimmed = null;
-                //    PDFComment.ExtractPDFComment(Line, out Comment, out Trimmed, out Index);
-                //    if ((Comment != null) && (Comment.Length > 0))
-                //    {
-                //        textBox2.AppendText(Encoding.UTF8.GetString(Comment));
-                //        textBox2.AppendText(Environment.NewLine);
-                //    }
-                //}
-
                 foreach (IPDFObject pdfObject in pdfFile.GetAllObjects())
                 {
                     textBox3.AppendText(pdfObject.Description);
@@ -61,7 +39,16 @@ namespace PKPDFTester
         {
             _pdf = new PDF(PDFPathname);
             txtPDFName.Text = PDFPathname;
-            ShowFields(_pdf);
+            txtPDFVersion.Text = _pdf.Version.ToString();
+            txtBinary.Text = _pdf.isBinary.ToString();
+            txtMaxObjects.Text = _pdf.MaxObjects.ToString();
+
+            if (_pdf.Version == 0.0)
+                MessageBox.Show("File does not contain a PDF version number; can not parse", "Invalid PDF", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            else
+            {
+                //ShowFields(_pdf);
+            }
         }
 
         private void btnOpenPDF_Click(object sender, EventArgs e)

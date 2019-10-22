@@ -10,7 +10,7 @@ namespace PortableKnowledge.PDF
     {
         public PDFObjectType Type => PDFObjectType.Number;
 
-        Decimal Value;
+        public Decimal Value;
 
         public PDFNumber(int Number)
         {
@@ -47,6 +47,44 @@ namespace PortableKnowledge.PDF
 
             EndingIndex = StartingIndex;
             return null;
+        }
+
+        /// <summary>
+        /// Attempt to parse a string as a PDF Number definition (ignoring whitespace characters, etc)
+        /// </summary>
+        /// <param name="Token">String to parse</param>
+        /// <param name="Default">Value to return if unable to parse (default: null)</param>
+        /// <returns>PDFNumber represented by the string, or Default if unable to parse</returns>
+        public static PDFNumber TryParse(string Token, PDFNumber Default = null)
+        {
+            PDFNumber Parsed = (PDFNumber)TryParse(Token, null, 0, out _);
+            if (Parsed == null)
+                return Default;
+            return Parsed;
+        }
+
+        /// <summary>
+        /// Attempt to parse a string as a PDF Number definition (ignoring whitespace characters, etc) and
+        /// return the integer version of that number
+        /// </summary>
+        /// <param name="Token">String to parse</param>
+        /// <param name="Default">Value to return if unable to parse (default: null)</param>
+        /// <returns>Integer value of parsed string, or Default if unable to parse</returns>
+        public static int TryParse(string Token, int Default)
+        {
+            return (int)TryParse(Token, new PDFNumber(Default)).Value;
+        }
+
+        /// <summary>
+        /// Attempt to parse a string as a PDF Number definition (ignoring whitespace characters, etc) and
+        /// return the float version of that number
+        /// </summary>
+        /// <param name="Token">String to parse</param>
+        /// <param name="Default">Value to return if unable to parse (default: null)</param>
+        /// <returns>Float value of parsed string, or Default if unable to parse</returns>
+        public static float TryParse(string Token, float Default)
+        {
+            return (float)TryParse(Token, new PDFNumber(Default)).Value;
         }
 
         public override string ToString()

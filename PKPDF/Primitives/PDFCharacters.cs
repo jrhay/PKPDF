@@ -172,7 +172,7 @@ namespace PortableKnowledge.PDF
             {
                 bool Match = false;
                 SeqIndex = FirstOccurance(DataLine, Sequence[0], StartingIndex, EndingIndex);
-                if (SeqIndex >= 0)
+                if ((SeqIndex >= 0) && (SeqIndex + Sequence.Length <= DataLine.Length))
                 {
                     Match = true;
                     for (int i = 1; Match && i < Sequence.Length; i++)
@@ -286,7 +286,7 @@ namespace PortableKnowledge.PDF
         /// <param name="Data">PDF Data stream to extract bytes from</param>
         /// <param name="StartIndex">Starting index in stream to start extracting bytes</param>
         /// <param name="EndIndex">Index in stream at end of line's EOL characters</param>
-        /// <returns>Extracted data line</returns>
+        /// <returns>Extracted data line, or null if unable to extract a line</returns>
         public static byte[] ExtractPDFLine(byte[] Data, int StartIndex, out int EndIndex)
         {
             byte[] Line = null;
@@ -297,11 +297,37 @@ namespace PortableKnowledge.PDF
                 int EOLStart = PDF.EOLStart(Data, out EOLLength, StartIndex);
                 EndIndex = EOLStart + EOLLength;
 
-                int LineLength = EOLStart - StartIndex - 1;
+                int LineLength = EOLStart - StartIndex;
                 Line = new byte[LineLength];
                 Array.Copy(Data, StartIndex, Line, 0, LineLength);
             }
             return Line;
+        }
+
+        /// <summary>
+        /// Extract the full line that appears immediately before a particular index in a PDF file
+        /// </summary>
+        /// <param name="Data">PDF file data</param>
+        /// <param name="StartIndex">Index where a backwards search for an EOL character should start</param>
+        /// <param name="EndIndex">Last index searched (either start of found line, or start of data stream)</param>
+        /// <param name="EndOfLineIndex">Index at the end of the found line, or StartIndex if no line found</param>
+        /// <returns>Previous line in PDF data file, or null if no previous line found</returns>
+        public static byte[] ExtractPreviousPDFLine(byte[] Data, int StartIndex, out int EndIndex, out int EndOfLineIndex)
+        {
+            int LineStart = StartIndex;
+            EndOfLineIndex = StartIndex;
+            EndIndex = StartIndex - 1;
+            while ((LineStart >= StartIndex) && (EndIndex >= 0))
+            {
+                int EOLLen = 0;
+                LineStart = EOLStart(Data, out EOLLen, EndIndex);
+                LineStart += EOLLen;
+                EndIndex--;
+            }
+            if (LineStart < StartIndex)
+                return ExtractPDFLine(Data, LineStart, out EndOfLineIndex);
+
+            return null;
         }
 
         /// <summary>
@@ -330,6 +356,27 @@ namespace PortableKnowledge.PDF
             }
 
             return NewLine.ToArray();
+        }
+
+        /// <summary>
+        /// Look for an EOF marker in a PDF data stream, starting at a given location in the stream
+        /// and working backwards (ignoring any trailing whitespace/EOL characters)
+        /// </summary>
+        /// <param name="StartLocation">Location at which to start backwards search for EOF marker</param>
+        /// <returns>Location of found EOF marker or -1 if no marker found</returns>
+        public static int FindEOF(byte[] Data, int StartLocation)
+        {
+            string EOFMarker = "%%EOF";
+            int EOFMarkerIndex = EOFMarker.Length - 1;
+            while ((StartLocation > 0) && (EOFMarkerIndex >= 0))
+            {
+                if (Data[StartLocation] == EOFMarker[EOFMarkerIndex])
+                    EOFMarkerIndex--;
+                else if (!IsWhitespace(Data[StartLocation]))
+                    return -1;
+                StartLocation--;
+            }
+            return (EOFMarkerIndex < 0) ? StartLocation : -1;
         }
 
         /// <summary>

@@ -20,6 +20,8 @@ namespace PortableKnowledge.PDF
 
         StringLiteral,
 
+        HexString,
+
         ObjectDefinition,
 
         IndirectReference,
@@ -30,6 +32,8 @@ namespace PortableKnowledge.PDF
 
         Name,
 
-        Stream
+        Stream,
+
+        Trailer
     }
 }

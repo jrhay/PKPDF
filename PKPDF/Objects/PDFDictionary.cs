@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PortableKnowledge.PDF
 {
-    class PDFDictionary : Dictionary<string, IPDFObject>, IPDFObject
+    public class PDFDictionary : Dictionary<string, IPDFObject>, IPDFObject
     {
         public PDFObjectType Type => PDFObjectType.Dictionary;
 
