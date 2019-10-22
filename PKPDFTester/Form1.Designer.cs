@@ -34,12 +34,14 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.textBox3 = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
-            this.txtPDFVersion = new System.Windows.Forms.TextBox();
+            this.txtHeaderVersion = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.txtBinary = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.txtMaxObjects = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.txtPDFVersion = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnOpenPDF
@@ -101,15 +103,15 @@
             this.label4.Text = "Objects in PDF";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // txtPDFVersion
+            // txtHeaderVersion
             // 
-            this.txtPDFVersion.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.txtHeaderVersion.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtPDFVersion.Location = new System.Drawing.Point(127, 85);
-            this.txtPDFVersion.Name = "txtPDFVersion";
-            this.txtPDFVersion.ReadOnly = true;
-            this.txtPDFVersion.Size = new System.Drawing.Size(89, 20);
-            this.txtPDFVersion.TabIndex = 11;
+            this.txtHeaderVersion.Location = new System.Drawing.Point(127, 85);
+            this.txtHeaderVersion.Name = "txtHeaderVersion";
+            this.txtHeaderVersion.ReadOnly = true;
+            this.txtHeaderVersion.Size = new System.Drawing.Size(89, 20);
+            this.txtHeaderVersion.TabIndex = 11;
             // 
             // label2
             // 
@@ -120,14 +122,14 @@
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(89, 20);
             this.label2.TabIndex = 10;
-            this.label2.Text = "PDF Version";
+            this.label2.Text = "Header Version";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // txtBinary
             // 
             this.txtBinary.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtBinary.Location = new System.Drawing.Point(232, 85);
+            this.txtBinary.Location = new System.Drawing.Point(350, 85);
             this.txtBinary.Name = "txtBinary";
             this.txtBinary.ReadOnly = true;
             this.txtBinary.Size = new System.Drawing.Size(89, 20);
@@ -138,7 +140,7 @@
             this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label3.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.label3.Location = new System.Drawing.Point(232, 65);
+            this.label3.Location = new System.Drawing.Point(350, 65);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(89, 20);
             this.label3.TabIndex = 12;
@@ -149,7 +151,7 @@
             // 
             this.txtMaxObjects.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtMaxObjects.Location = new System.Drawing.Point(345, 85);
+            this.txtMaxObjects.Location = new System.Drawing.Point(463, 85);
             this.txtMaxObjects.Name = "txtMaxObjects";
             this.txtMaxObjects.ReadOnly = true;
             this.txtMaxObjects.Size = new System.Drawing.Size(89, 20);
@@ -160,23 +162,47 @@
             this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label5.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.label5.Location = new System.Drawing.Point(345, 65);
+            this.label5.Location = new System.Drawing.Point(463, 65);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(89, 20);
             this.label5.TabIndex = 14;
             this.label5.Text = "Num Objects";
             this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // txtPDFVersion
+            // 
+            this.txtPDFVersion.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtPDFVersion.Location = new System.Drawing.Point(231, 85);
+            this.txtPDFVersion.Name = "txtPDFVersion";
+            this.txtPDFVersion.ReadOnly = true;
+            this.txtPDFVersion.Size = new System.Drawing.Size(89, 20);
+            this.txtPDFVersion.TabIndex = 17;
+            // 
+            // label6
+            // 
+            this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label6.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.label6.Location = new System.Drawing.Point(231, 65);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(89, 20);
+            this.label6.TabIndex = 16;
+            this.label6.Text = "PDF Version";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1340, 450);
+            this.Controls.Add(this.txtPDFVersion);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.txtMaxObjects);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.txtBinary);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.txtPDFVersion);
+            this.Controls.Add(this.txtHeaderVersion);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.textBox3);
             this.Controls.Add(this.label4);
@@ -198,12 +224,14 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.TextBox textBox3;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox txtPDFVersion;
+        private System.Windows.Forms.TextBox txtHeaderVersion;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox txtBinary;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtMaxObjects;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox txtPDFVersion;
+        private System.Windows.Forms.Label label6;
     }
 }
 

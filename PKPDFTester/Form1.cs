@@ -39,6 +39,7 @@ namespace PKPDFTester
         {
             _pdf = new PDF(PDFPathname);
             txtPDFName.Text = PDFPathname;
+            txtHeaderVersion.Text = _pdf.HeaderVersion.ToString();
             txtPDFVersion.Text = _pdf.Version.ToString();
             txtBinary.Text = _pdf.isBinary.ToString();
             txtMaxObjects.Text = _pdf.MaxObjects.ToString();

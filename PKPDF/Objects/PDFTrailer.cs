@@ -9,7 +9,7 @@ namespace PortableKnowledge.PDF
     /// </summary>
     public class PDFTrailer : PDFDictionary
     {
-        PDFCrossReference CrossReference = null;
+        public PDFCrossReference CrossReference = null;
 
         public new PDFObjectType Type => PDFObjectType.Trailer;
 

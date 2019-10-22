@@ -24,7 +24,7 @@ namespace PortableKnowledge.PDF
         /// <summary>
         /// The total number of objects contained in this section
         /// </summary>
-        public int NumObjects => ObjectOffsets.Length;
+        public int NumObjects => (ObjectOffsets == null) ? 0 : ObjectOffsets.Length;
 
         /// <summary>
         /// Does this cross reference section contain information for the given object?
@@ -33,7 +33,22 @@ namespace PortableKnowledge.PDF
         /// <returns>TRUE if this cross reference section contains information about the given object, FALSE otherwise</returns>
         public bool ContainsObject(int ObjectNumber)
         {
-            return ((ObjectNumber >= StartingObject) && (StartingObject + NumObjects < ObjectNumber));
+            if (NumObjects == 0)
+                return false;
+
+            return ((ObjectNumber >= StartingObject) && (ObjectNumber < StartingObject + NumObjects));
+        }
+
+        /// <summary>
+        /// Does this cross reference section contain information for the given object?
+        /// </summary>
+        /// <param name="indirectObject">Indirect object reference to the object of interest</param>
+        /// <param name="MatchGeneration">Should the generation number for the object be matched as well? (default: false)</param>
+        /// <returns>TRUE if this cross reference section contains information about the given object, FALSE otherwise</returns>
+        public bool ContainsObject(PDFIndirectObject indirectObject, bool MatchGeneration = false)
+        {
+            return ContainsObject(indirectObject.ObjectNumber) &&
+                (!MatchGeneration || (GenerationForObject(indirectObject.ObjectNumber) == indirectObject.GenerationNumber));
         }
 
         /// <summary>
@@ -61,6 +76,27 @@ namespace PortableKnowledge.PDF
                 foreach (PDFCrossReference section in this.Subsections)
                     if (section.ContainsObject(ObjectNumber))
                         return section.OffsetForObject(ObjectNumber);
+
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Return the offset into the PDF file where an object with the given object number is defined
+        /// </summary>
+        /// <param name="indirectObject">Indirect object reference to the object of interest</param>
+        /// <param name="MatchGeneration">Should the generation number for the object be matched as well? (default: false)</param>
+        /// <returns>Offset into PDF file of object definition, or 0 if object is not found in this cross reference section or represents a deleted object</returns>
+        public int OffsetForObject(PDFIndirectObject indirectObject, bool MatchGeneration = false)
+        {
+            if (this.ContainsObject(indirectObject, MatchGeneration))
+                return ObjectOffsets[indirectObject.ObjectNumber - StartingObject];
+            else
+            {
+                // Search subsections for object
+                foreach (PDFCrossReference section in this.Subsections)
+                    if (section.ContainsObject(indirectObject, MatchGeneration))
+                        return section.OffsetForObject(indirectObject);
 
                 return 0;
             }
@@ -120,12 +156,12 @@ namespace PortableKnowledge.PDF
                         Match objMatch = Regex.Match(Next, @"(\d\d\d\d\d\d\d\d\d\d) (\d\d\d\d\d) ([n|f])");
                         if (objMatch.Success)
                         {
-                            int Generation = int.Parse(objMatch.Groups[1].Value);
-                            char type = objMatch.Groups[2].Value[0];
+                            int Generation = int.Parse(objMatch.Groups[2].Value);
+                            char type = objMatch.Groups[3].Value[0];
                             if (type == 'n')
                             {
                                 // Add active object to table
-                                int Offset = int.Parse(objMatch.Groups[0].Value);
+                                int Offset = int.Parse(objMatch.Groups[1].Value);
                                 Subsection.ObjectOffsets[i] = Offset;
                                 Subsection.ObjectGenerations[i] = Generation;
                             }
@@ -141,6 +177,7 @@ namespace PortableKnowledge.PDF
                         else
                             return null; // Invalid Cross Reference Section
                     }
+                    return Subsection;
                 }
             }
             return null;
@@ -155,10 +192,11 @@ namespace PortableKnowledge.PDF
         /// <returns>Instance of PDF Cross Reference Section on success, NULL on failure to parse</returns>
         public static PDFCrossReference ReadCrossReference(byte[] Data, int StartIndex, out int EndIndex)
         {
+            PDFCrossReference section = null;
             string Declaration = Encoding.UTF8.GetString(PDF.ExtractPDFLine(Data, StartIndex + 18, out EndIndex)).Trim();
             if ("xref".Equals(Declaration))
             {
-                PDFCrossReference section = ReadCrossReferenceSubsection(Data, EndIndex, out EndIndex);
+                section = ReadCrossReferenceSubsection(Data, EndIndex, out EndIndex);
                 if (section != null)
                 {
                     PDFCrossReference subSection;
@@ -173,7 +211,7 @@ namespace PortableKnowledge.PDF
                     } while (subSection != null);
                 }
             }
-            return null;
+            return section;
         }
 
         /// <summary>

@@ -15,7 +15,18 @@ namespace PortableKnowledge.PDF
         /// <summary>
         /// Maximum PDF specification revision that this PDF conforms to
         /// </summary>
-        public float Version { get; }
+        public float Version {
+            get
+            {
+                if ((Catalog == null) || !Catalog.Keys.Contains("Version"))
+                    return HeaderVersion;
+
+                IPDFObject CatalogVersionName = Catalog["Version"];
+                if (CatalogVersionName.Type != PDFObjectType.Name)
+                    return HeaderVersion;
+                return float.Parse(CatalogVersionName.Description);
+            }
+        }
 
         /// <summary>
         /// PDF specification revision that the header of the PDF lists
@@ -36,6 +47,16 @@ namespace PortableKnowledge.PDF
         /// Final trailer in PDF file
         /// </summary>
         public PDFTrailer Trailer { get; }
+
+        /// <summary>
+        /// PDF Object Cross Reference Table
+        /// </summary>
+        public PDFCrossReference CrossReference => (Trailer == null) ? null : Trailer.CrossReference;
+
+        /// <summary>
+        /// PDF Document catalog (settings)
+        /// </summary>
+        public PDFDictionary Catalog { get; private set; }
 
         /// <summary>
         /// Maximum number of objects defined in this PDF
@@ -61,13 +82,65 @@ namespace PortableKnowledge.PDF
 
             Open(Pathname);
             HeaderVersion = ReadPDFHeader(out is8bit);
-            Version = HeaderVersion;
             this.isBinary = is8bit;
 
             Trailer = PDFTrailer.ReadTrailer(RawData);
 
+            if (!ReadPDFCatalog())
+                throw new PDFMissingCatalogException();
+
             if ((Version < 1) || (!AllowUnsupported && (Math.Truncate(Version * 10) > 17d)))
                 throw new UnsupportedPDFFormatException(Version);
+        }
+
+        /// <summary>
+        /// Load a single object from the PDF data stream, starting at a paritcular offset
+        /// </summary>
+        /// <param name="Offset">Offset into data stream of object to read</param>
+        /// <returns>Object as read out of data stream, or null if no object could be parsed</returns>
+        private IPDFObject LoadObjectAtOffset(int Offset)
+        {
+            IPDFObject objectDefinition = PDFObjectParser.Parse(RawData, out _, Offset);
+            if (objectDefinition.Type == PDFObjectType.ObjectDefinition)
+                return ((PDFObjectDefinition)objectDefinition).Object;
+            return objectDefinition;
+        }
+
+        /// <summary>
+        /// Dereference indirect object
+        /// </summary>
+        /// <param name="objectReference">Object to dereference</param>
+        /// <returns>Dereferenced object, or original object if not an indirect object</returns>
+        private IPDFObject GetObject(IPDFObject objectReference)
+        {
+            if (CrossReference == null)
+                throw new PDFMissingCrossreferenceTableException();
+
+            IPDFObject reference = objectReference;
+            while (reference.Type == PDFObjectType.IndirectReference)
+            {
+                int Offset = CrossReference.OffsetForObject((PDFIndirectObject)reference);
+                if (Offset == 0)
+                    return new PDFNull();
+                reference = LoadObjectAtOffset(Offset);
+            }
+            return reference;
+        }
+
+        /// <summary>
+        /// Reads the PDF catalog dictionary, if it can be found
+        /// </summary>
+        /// <returns>TRUE if catalog dictionary found and loaded successfully, FALSE otherwise</returns>
+        private bool ReadPDFCatalog()
+        {
+            Catalog = null;
+            if ((Trailer != null) && (Trailer.Keys.Contains("Root")))
+            {
+                IPDFObject catalogObject = GetObject(Trailer["Root"]);
+                if ((catalogObject != null) && (catalogObject.Type == PDFObjectType.Dictionary))
+                    Catalog = (PDFDictionary)catalogObject;
+            }
+            return (Catalog != null);
         }
 
         /// <summary>
